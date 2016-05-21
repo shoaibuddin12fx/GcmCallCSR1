@@ -1,0 +1,35 @@
+{
+  "project_info": {
+    "project_number": "254390133551",
+    "project_id": "gcmcallcsr1"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:254390133551:android:f6cfd5a476cffd74",
+        "android_client_info": {
+          "package_name": "com.matechco.gcmcallcsr1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjMBVS1_t9YfNVbslELlCOupTnXz1QZPo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

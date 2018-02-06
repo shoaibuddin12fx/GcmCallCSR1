@@ -1,4 +1,4 @@
-package com.matechco.gcmcallcsr1;
+package com.matechco.omnisales;
 
 import android.content.Context;
 import android.content.SharedPreferences;

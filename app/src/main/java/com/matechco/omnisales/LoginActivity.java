@@ -1,4 +1,4 @@
-package com.matechco.gcmcallcsr1;
+package com.matechco.omnisales;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -17,11 +17,14 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -36,6 +39,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
@@ -49,7 +53,12 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+import static android.Manifest.permission.CALL_PHONE;
+import static android.Manifest.permission.PROCESS_OUTGOING_CALLS;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.READ_CONTACTS;
+
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES;
 
@@ -63,6 +72,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Id to identity READ_CONTACTS permission request.
      */
     private static final int REQUEST_READ_CONTACTS = 0;
+    private static final int REQUEST_PROCESS_CALLS = 1;
     public final static String CACHE_EMAIL = "com.matechco.csrcall.CACHE_EMAIL";
     public final static String CACHE_PASSWORD = "com.matechco.csrcall.CACHE_PASSWORD";
     private static String GCM_TOKEN = null;
@@ -78,6 +88,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int REQUEST_CODE = 0;
     private DevicePolicyManager mDPM;
     private ComponentName mAdminName;
+    private boolean isCallPermissionGiven = false;
+    private LoginActivity self = this;
 
 
 
@@ -144,22 +156,19 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             e.printStackTrace();
         }
 
-
-
-
-
-
-
-
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
 
         mPasswordView = (EditText) findViewById(R.id.password);
+
+        mEmailView.setText("tariq@matechco.com");
+        mPasswordView.setText("telemart_123");
+
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
+                if (id == R.integer.customImeActionId || id == EditorInfo.IME_NULL) {
                     attemptLogin();
                     return true;
                 }
@@ -197,6 +206,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     t.setText(GCM_TOKEN);
 
                     Log.e("import_token", GCM_TOKEN);
+
+
+
+
+
+
 
 
 
@@ -292,31 +307,46 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 
     private void populateAutoComplete() {
-        if (!mayRequestContacts()) {
-            return;
+
+        int PERMISSION_ALL = 1;
+        String[] PERMISSIONS = {CALL_PHONE, PROCESS_OUTGOING_CALLS, WRITE_EXTERNAL_STORAGE, AUDIO_SERVICE, RECORD_AUDIO};
+
+        if(!hasPermissions(this, PERMISSIONS)){
+            ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
+        }else{
+            getLoaderManager().initLoader(0, null, this);
         }
 
-        getLoaderManager().initLoader(0, null, this);
+//        if (mayRequestContacts()) {
+//
+//        }
     }
 
+
+
+
     private boolean mayRequestContacts() {
+
+
+
+
         if (SDK_INT < VERSION_CODES.M) {
             return true;
         }
-        if (checkSelfPermission(READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+        if (checkSelfPermission(CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
             return true;
         }
-        if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
+        if (shouldShowRequestPermissionRationale(CALL_PHONE)) {
             Snackbar.make(mEmailView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
                     .setAction(android.R.string.ok, new OnClickListener() {
                         @Override
                         @TargetApi(VERSION_CODES.M)
                         public void onClick(View v) {
-                            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
+                            requestPermissions(new String[]{CALL_PHONE}, REQUEST_READ_CONTACTS);
                         }
                     });
         } else {
-            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
+            requestPermissions(new String[]{CALL_PHONE}, REQUEST_READ_CONTACTS);
         }
         return false;
     }
@@ -327,6 +357,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
+
+        
+
         if (requestCode == REQUEST_READ_CONTACTS) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 populateAutoComplete();
@@ -540,10 +573,25 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
 
 
-                String link="http://android.matechco.com/gcm/insert.php";
-                String data  = URLEncoder.encode("email", "UTF-8") + "=" + URLEncoder.encode(mEmail, "UTF-8");
-                data += "&" + URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(mPassword, "UTF-8");
-                data += "&" + URLEncoder.encode("gcm_token", "UTF-8") + "=" + URLEncoder.encode(GCM_TOKEN, "UTF-8");
+                //String link="http://android.matechco.com/gcm/insert.php";
+                String link="http://test.omnisales.pk/Account/LoginMobile";
+
+                String data  = URLEncoder.encode("Email", "UTF-8") + "=" + URLEncoder.encode(mEmail, "UTF-8");
+                data += "&" + URLEncoder.encode("Password", "UTF-8") + "=" + URLEncoder.encode(mPassword, "UTF-8");
+                data += "&" + URLEncoder.encode("DeviceId", "UTF-8") + "=" + URLEncoder.encode(GCM_TOKEN, "UTF-8");
+
+//                JSONObject postData = new JSONObject();
+//                try {
+//                    postData.put("Email", URLEncoder.encode(mEmail, "UTF-8"));
+//                    postData.put("Password", URLEncoder.encode(mPassword, "UTF-8"));
+//                    postData.put("DeviceId", URLEncoder.encode(GCM_TOKEN, "UTF-8"));
+//
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+
+
+
 
                 URL url = new URL(link);
                 URLConnection conn = url.openConnection();
@@ -620,6 +668,17 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
 
 
+    }
+
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
 

@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.matechco.gcmcallcsr1">
+    package="com.matechco.omnisales">
 
     <permission
-        android:name="com.matechco.gcmcallcsr1.permission.C2D_MESSAGE"
+        android:name="com.matechco.omnisales.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
 
+    <uses-permission android:name="android.permission.CALL" />
+    <uses-permission android:name="android.permission.NEW_OUTGOING_CALL" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
-    <uses-permission android:name="com.matechco.gcmcallcsr1.permission.C2D_MESSAGE" />
+    <uses-permission android:name="com.matechco.omnisales.permission.C2D_MESSAGE" />
 
     <!-- [START gcm_permission] -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
@@ -17,6 +20,7 @@
 
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
+
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -30,8 +34,10 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_PRECISE_PHONE_STATE" />
 
@@ -47,7 +53,6 @@
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -61,7 +66,7 @@
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
 
-                <category android:name="com.matechco.gcmcallcsr1" />
+                <category android:name="com.matechco.omnisales" />
             </intent-filter>
         </receiver>
         <!-- [END gcm_receiver] -->
@@ -78,19 +83,10 @@
             </intent-filter>
         </receiver>
 
-
-
-
-
-
-
-
-
-
         <service
             android:name=".MyGcmListenerService"
             android:enabled="true"
-            android:permission="com.matechco.gcmcallcsr1.permission.C2D_MESSAGE">
+            android:permission="com.matechco.omnisales.permission.C2D_MESSAGE">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
@@ -98,7 +94,7 @@
         <service
             android:name=".MyInstanceIDListenerService"
             android:enabled="true"
-            android:permission="com.matechco.gcmcallcsr1.permission.C2D_MESSAGE">
+            android:permission="com.matechco.omnisales.permission.C2D_MESSAGE">
             <intent-filter>
                 <action android:name="com.google.android.gms.iid.InstanceID" />
             </intent-filter>
@@ -121,6 +117,15 @@
                 <action android:name="android.intent.action.PRECISE_CALL_STATE" />
             </intent-filter>
         </service>
+
+        <activity android:name=".RuntimePermissions">
+
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.MAIN" />-->
+
+                <!--<category android:name="android.intent.category.LAUNCHER" />-->
+            <!--</intent-filter>-->
+        </activity>
     </application>
 
 </manifest>

@@ -1,4 +1,4 @@
-package com.matechco.gcmcallcsr1;
+package com.matechco.omnisales;
 
 import android.app.ActivityManager;
 import android.app.admin.DevicePolicyManager;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.matechco.gcmcallcsr1;
+package com.matechco.omnisales;
 
 public class QuickstartPreferences {
 

@@ -1,4 +1,4 @@
-package com.matechco.gcmcallcsr1;
+package com.matechco.omnisales;
 
 import org.junit.Test;
 

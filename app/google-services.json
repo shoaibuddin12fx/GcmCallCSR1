@@ -1,20 +1,35 @@
 {
   "project_info": {
-    "project_number": "254390133551",
-    "project_id": "gcmcallcsr1"
+    "project_number": "852693095151",
+    "firebase_url": "https://omnisales-95a8c.firebaseio.com",
+    "project_id": "omnisales-95a8c",
+    "storage_bucket": "omnisales-95a8c.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:254390133551:android:f6cfd5a476cffd74",
+        "mobilesdk_app_id": "1:852693095151:android:239a770c6793da63",
         "android_client_info": {
-          "package_name": "com.matechco.gcmcallcsr1"
+          "package_name": "com.matechco.omnisales"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "852693095151-d8fq20sl1iuhpecfshrjlqne9nvf9sa5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.matechco.omnisales",
+            "certificate_hash": "b19d1af6188ed97cfc710649b329a133ecd2b480"
+          }
+        },
+        {
+          "client_id": "852693095151-qfu09o9jmpd5ad6f5q51e47hb0eeq5jh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyCjMBVS1_t9YfNVbslELlCOupTnXz1QZPo"
+          "current_key": "AIzaSyA4Ie04u8noek2YePfwKReIxatJXru6o0Q"
         }
       ],
       "services": {
@@ -22,11 +37,16 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "852693095151-qfu09o9jmpd5ad6f5q51e47hb0eeq5jh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
-          "status": 1
+          "status": 2
         }
       }
     }

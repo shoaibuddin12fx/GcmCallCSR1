@@ -9,6 +9,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.net.Uri;
 import android.os.Build;
@@ -27,6 +29,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 
+import static android.telephony.TelephonyManager.*;
+import static android.telephony.TelephonyManager.CALL_STATE_IDLE;
+
 public class TService extends Service {
     public static final String THE_FILE_PATH = "com.matech.csrcall.THE_FILE_PATH";
     MediaRecorder recorder;
@@ -42,11 +47,13 @@ public class TService extends Service {
     Toast toast;
     Boolean isOffHook = false;
     private boolean recordstarted = false;
+    TService tService = self;
 
     private static final String ACTION_IN = "android.intent.action.PHONE_STATE";
     private static final String ACTION_OUT = "android.intent.action.NEW_OUTGOING_CALL";
+    private static final String LOG_TAG = "CALL_LOG_TAG";
     private CallBr br_call;
-
+    private static  TService self;
 
 
 
@@ -56,11 +63,13 @@ public class TService extends Service {
         return null;
     }
 
+
+
     @Override
     public void onDestroy() {
         Log.d("service", "destroy");
-
         super.onDestroy();
+
     }
 
     @Override
@@ -79,9 +88,15 @@ public class TService extends Service {
         // PhoneStateListener.LISTEN_CALL_STATE);
         // context = getApplicationContext();
 
+        self = this;
+
         final IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_OUT);
         filter.addAction(ACTION_IN);
+
+        if (this.br_call!=null) {
+            this.unregisterReceiver(this.br_call);
+        }
         this.br_call = new CallBr();
         this.registerReceiver(this.br_call, filter);
 
@@ -102,45 +117,80 @@ public class TService extends Service {
         public static final String MY_PREF = "MY_PREF";
         public static final String REFERENCE_KEY = "REFERENCE_KEY";
 
+        private boolean validateMicAvailability(){
+            Boolean available = true;
+            AudioRecord recorder =
+                    new AudioRecord(MediaRecorder.AudioSource.MIC, 44100,
+                            AudioFormat.CHANNEL_IN_MONO,
+                            AudioFormat.ENCODING_DEFAULT, 44100);
+            try{
+                if(recorder.getRecordingState() != AudioRecord.RECORDSTATE_STOPPED ){
+                    available = false;
+
+                }
+
+                recorder.startRecording();
+                if(recorder.getRecordingState() != AudioRecord.RECORDSTATE_RECORDING){
+                    recorder.stop();
+                    available = false;
+
+                }
+                recorder.stop();
+            } finally{
+                recorder.release();
+                recorder = null;
+            }
+
+            return available;
+        }
+
         @Override
         public void onReceive(Context context, Intent intent) {
 
             Integer API_VERSION = Build.VERSION.SDK_INT;
             Log.e("SDK version", String.valueOf(API_VERSION));
 
+            if (intent.getAction().equalsIgnoreCase("ACTIVITY_FINISH"))
+            {
+                Log.d("INFO", intent.getExtras().getString("FinishMsg"));
+                //finish(); // do here whatever you want
+            }
+
             if(API_VERSION >= 23) {
 
                 // this piece of code is supposed to be working for android 5 and above but can't be tested
                 // the new version is not available with my physical device
                 //
-                /*switch (intent.getIntExtra(TelephonyManager.EXTRA_FOREGROUND_CALL_STATE, -2) {
-                    case PreciseCallState.PRECISE_CALL_STATE_IDLE:
-                        Log.d(This.LOG_TAG, "IDLE");
+
+
+                switch (intent.getIntExtra(EXTRA_STATE, -2)) {
+                    case CALL_STATE_IDLE:
+                        Log.d(LOG_TAG, "IDLE");
                         break;
-                    case PreciseCallState.PRECISE_CALL_STATE_DIALING:
-                        Log.d(This.LOG_TAG, "DIALING");
+                    case CALL_STATE_RINGING:
+                        Log.d(LOG_TAG, "RINGING");
                         break;
-                    case PreciseCallState.PRECISE_CALL_STATE_ALERTING:
-                        Log.d(This.LOG_TAG, "ALERTING");
+                    case CALL_STATE_OFFHOOK:
+                        Log.d(LOG_TAG, "OFFHOOK");
                         break;
-                    case PreciseCallState.PRECISE_CALL_STATE_ACTIVE:
-                        Log.d(This.LOG_TAG, "ACTIVE");
-                        break;
-                }*/
+
+                }
 
 
             }
 
 
+
+
                 if (intent.getAction().equals(ACTION_IN)) {
                     if ((bundle = intent.getExtras()) != null) {
-                        state = bundle.getString(TelephonyManager.EXTRA_STATE);
-                        if (state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-                            inCall = bundle.getString(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                        state = bundle.getString(EXTRA_STATE);
+                        if (state.equals(EXTRA_STATE_RINGING)) {
+                            inCall = bundle.getString(EXTRA_INCOMING_NUMBER);
                             wasRinging = true;
                             Toast.makeText(context, "IN : " + inCall, Toast.LENGTH_LONG).show();
-                        } else if (state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-                            inCall = bundle.getString(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                        } else if (state.equals(EXTRA_STATE_OFFHOOK)) {
+                            inCall = bundle.getString(EXTRA_INCOMING_NUMBER);
 
                             if (wasRinging == true) {
                                 Toast.makeText(context, "ANSWERED", Toast.LENGTH_LONG).show();
@@ -150,13 +200,21 @@ public class TService extends Service {
 
 
                             }
-                        } else if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                        } else if (state.equals(EXTRA_STATE_IDLE)) {
                             wasRinging = false;
                             Toast.makeText(context, "REJECT || DISCO", Toast.LENGTH_LONG).show();
                             if (recordstarted) {
 
                                 try {
+                                    try {
+                                        Thread.sleep(150);
+                                    } catch (InterruptedException e) {
+                                        // TODO Auto-generated catch block
+                                        e.printStackTrace();
+                                    }
                                     recorder.stop();
+                                    recorder.reset();
+                                    recorder.release();
                                     recordstarted = false;
 
                                     showNotification();
@@ -164,16 +222,21 @@ public class TService extends Service {
 
                                     Toast.makeText(context, "Call Recorded", Toast.LENGTH_LONG).show();
 
+
                                 } catch (Exception e) {
 
                                 }
 
                             }
-                            TService.this.stopSelf();
+                            self.unregisterReceiver(br_call);
+                            self.stopSelf();
+//                            TService.this.stopSelf();
                         }
                     }
                 } else if (intent.getAction().equals(ACTION_OUT)) {
                     if ((bundle = intent.getExtras()) != null) {
+
+                        validateMicAvailability();
 
 
                         outCall = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
@@ -222,10 +285,10 @@ public class TService extends Service {
             if (!sampleDir.exists()) {
                 sampleDir.mkdirs();
             }
-            String file_name = outCall+"-";
+            String file_name = "/"+outCall+"-";
 
             try {
-                audiofile = File.createTempFile(file_name, ".amr", sampleDir);
+                audiofile = File.createTempFile(file_name, ".mp3", sampleDir);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -234,20 +297,21 @@ public class TService extends Service {
             recorder = new MediaRecorder();
 
             //recorder.setAudioSource(MediaRecorder.AudioSource.VOICE_CALL);
-            recorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION);
-            recorder.setOutputFormat(MediaRecorder.OutputFormat.AMR_NB);
-            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
             recorder.setOutputFile(audiofile.getAbsolutePath());
             recordedFilePath = audiofile.getAbsolutePath();
 
             try {
                 recorder.prepare();
+                recorder.start();
             } catch (IllegalStateException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            recorder.start();
+
             recordstarted = true;
 
         }
@@ -284,7 +348,7 @@ public class TService extends Service {
                         // Displays the progress bar for the first time.
                         mNotifyManager.notify(id, mBuilder.build());
 
-                        if(fileupload.UploadTheFile(recordedFilePath)){
+                        if(fileupload.UploadTheFile(recordedFilePath, TService.this)){
                             // When the loop is finished, updates the notification
 
                             String ref = fileupload.reference;
@@ -302,6 +366,8 @@ public class TService extends Service {
                 }
 // Starts the thread by calling the run() method in its Runnable
         ).start();
+
+
 
 
 

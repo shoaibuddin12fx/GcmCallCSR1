@@ -44,6 +44,8 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -57,7 +59,12 @@ import static android.Manifest.permission.CALL_PHONE;
 import static android.Manifest.permission.PROCESS_OUTGOING_CALLS;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static android.Manifest.permission.RECORD_AUDIO;
+import static android.Manifest.permission.READ_PHONE_STATE;
+
+
 import static android.Manifest.permission.READ_CONTACTS;
+
+
 
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES;
@@ -309,7 +316,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private void populateAutoComplete() {
 
         int PERMISSION_ALL = 1;
-        String[] PERMISSIONS = {CALL_PHONE, PROCESS_OUTGOING_CALLS, WRITE_EXTERNAL_STORAGE, AUDIO_SERVICE, RECORD_AUDIO};
+        String[] PERMISSIONS = {CALL_PHONE, PROCESS_OUTGOING_CALLS, READ_PHONE_STATE,  WRITE_EXTERNAL_STORAGE, AUDIO_SERVICE, RECORD_AUDIO};
 
         if(!hasPermissions(this, PERMISSIONS)){
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
@@ -571,53 +578,17 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             try {
 
-
-
-                //String link="http://android.matechco.com/gcm/insert.php";
-                String link="http://test.omnisales.pk/Account/LoginMobile";
-
-                String data  = URLEncoder.encode("Email", "UTF-8") + "=" + URLEncoder.encode(mEmail, "UTF-8");
-                data += "&" + URLEncoder.encode("Password", "UTF-8") + "=" + URLEncoder.encode(mPassword, "UTF-8");
-                data += "&" + URLEncoder.encode("DeviceId", "UTF-8") + "=" + URLEncoder.encode(GCM_TOKEN, "UTF-8");
-
-//                JSONObject postData = new JSONObject();
-//                try {
-//                    postData.put("Email", URLEncoder.encode(mEmail, "UTF-8"));
-//                    postData.put("Password", URLEncoder.encode(mPassword, "UTF-8"));
-//                    postData.put("DeviceId", URLEncoder.encode(GCM_TOKEN, "UTF-8"));
-//
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
+                JSONObject jsonObj = new JSONObject();
+                jsonObj.put("Email", mEmail);
+                jsonObj.put("Password", mPassword);
+                jsonObj.put("DeviceId", GCM_TOKEN);
 
 
 
-
-                URL url = new URL(link);
-                URLConnection conn = url.openConnection();
-
-                conn.setDoOutput(true);
-                OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-
-                wr.write( data );
-                wr.flush();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-
-                StringBuilder sb = new StringBuilder();
-                String line = null;
-
-                // Read Server Response
-                while((line = reader.readLine()) != null)
-                {
-                    sb.append(line);
-                    break;
-                }
+                return JsonUtil.postLogin(jsonObj, self);
 
 
 
-                Log.e("MSG_RETURN", sb.toString());
-                return true;
 
                 //return true;
             }
@@ -649,10 +620,14 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             if (success) {
 
-                /*Intent i = new Intent(LoginActivity.this, MainActivity.class);
-                i.putExtra(CACHE_EMAIL, cache_email);
-                i.putExtra(CACHE_PASSWORD, cache_password);
-                startActivity(i);*/
+                Toast.makeText(getApplicationContext(), "Login Successful", Toast.LENGTH_SHORT).show();
+
+
+
+//                Intent i = new Intent(LoginActivity.this, MainActivity.class);
+//                i.putExtra(CACHE_EMAIL, cache_email);
+//                i.putExtra(CACHE_PASSWORD, cache_password);
+//                startActivity(i);
                 //finish();
 
             } else {

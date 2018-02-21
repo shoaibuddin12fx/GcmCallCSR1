@@ -21,7 +21,12 @@ public class QuickstartPreferences {
     public static final String SENT_TOKEN_TO_SERVER = "sentTokenToServer";
     public static final String REGISTRATION_COMPLETE = "registrationComplete";
     public static final String GCM_TOKEN = "gcm_token";
+    public static final String LOGIN_TOKEN = "login_token";
+    public static final String LOGIN_MODEL_JSON_AS_STRING = "login_model_json_as_string";
     public static final String RECEIVED_CALL_NUMBER = "received_call_number";
+    public static final String ORDER_ID = "order_id";
+    public static final String STORE_ID = "store_id";
+    public static final String CALL_LOG_ID = "call_log_id";
     public static final Boolean CALL_RECORDED = false;
 
 }

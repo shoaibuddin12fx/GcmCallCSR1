@@ -13,6 +13,8 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
 
+import org.json.JSONException;
+
 public class MyGcmListenerService extends GcmListenerService {
     private static final String TAG = "MyGcmListenerService";
 
@@ -26,50 +28,62 @@ public class MyGcmListenerService extends GcmListenerService {
     // [START receive_message]
     @Override
     public void onMessageReceived(String from, Bundle data) {
+
+
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         //Toast.makeText(MyGcmListenerService.this, "received from", Toast.LENGTH_SHORT).show();
 
         String received_data = data.getString("tel");
+        String order_id = data.getString("OrderId");
+        String store_id = data.getString("StoreId");
+        String call_log_id = data.getString("CallLogId");
+
+
+
+
         Log.d(TAG, "From: " + from);
         Log.d(TAG, "GCM_RETURN_Message: " + data);
         Log.d(TAG, "GCM_RETURN_Message: " + received_data);
         sharedPreferences.edit().putString(QuickstartPreferences.RECEIVED_CALL_NUMBER, received_data).apply();
+        sharedPreferences.edit().putString(QuickstartPreferences.ORDER_ID, order_id).apply();
+        sharedPreferences.edit().putString(QuickstartPreferences.STORE_ID, store_id).apply();
+        sharedPreferences.edit().putString(QuickstartPreferences.CALL_LOG_ID, call_log_id).apply();
 
-        /*Intent i = new Intent(this, MainActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(i);*/
 
-        Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_CALL);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.setData(Uri.parse("tel:" + received_data));
-        startActivity(intent);
+        try {
+            if(JsonUtil.IsTokenExpire(this)){
+                Intent i = new Intent(this, LoginActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+            }else{
 
-        Intent intent2 = new Intent(this, TService.class);
-        if(isMyServiceRunning(TService.class)){
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_CALL);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setData(Uri.parse("tel:" + received_data));
+                startActivity(intent);
 
-            stopService(intent2);
-            Log.e("TserviceTag","Stopped");
+                Intent intent2 = new Intent(this, TService.class);
+                if(isMyServiceRunning(TService.class)){
 
-            startService(intent2);
-            Log.e("TserviceTag","Started");
-            //Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+                    stopService(intent2);
+                    Log.e("TserviceTag","Stopped");
 
-        }else{
-            startService(intent2);
-            Log.e("TserviceTag","Started");
-            //Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+                    startService(intent2);
+                    Log.e("TserviceTag","Started");
+                    //Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+
+                }else{
+                    startService(intent2);
+                    Log.e("TserviceTag","Started");
+                    //Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+                }
+
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -123,7 +137,7 @@ public class MyGcmListenerService extends GcmListenerService {
         NotificationManager notificationManager= (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_stat_ic_notification)
-                .setContentTitle("Test")
+                .setContentTitle("Call Record Notifier to")
                 .setContentText(received_data);
         notificationManager.notify(1, mBuilder.build());
 
